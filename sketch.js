@@ -1,12 +1,13 @@
-var point_x = 0;
-var point_y = 0;
-var point_set = false;
-var reset = false;
+let point_x = 0;
+let point_y = 0;
+let point_set = false;
+const HEIGHT = 500;
+const WIDTH = 500;
 
 const sketch = p => {
 
     p.setup = function() {
-        p.createCanvas(400,400);
+        p.createCanvas(HEIGHT,WIDTH);
         p.background(200);
         p.noStroke();
         p.fill(0);
@@ -23,12 +24,12 @@ const sketch = p => {
     }
 
     p.mousePressed = function() {
-        if(p.mouseX > 400 || p.mouseY > 400) return;
+        if(p.mouseX > HEIGHT || p.mouseY > WIDTH) return;
 
         p.ellipse(p.mouseX, p.mouseY, 5, 5);
             if(!point_set) {
-                point_x = p.mouseX;
-                point_y = p.mouseY;
+                point_x = p.mouseX - WIDTH/2;
+                point_y = p.mouseY - HEIGHT/2;
                 point_set = true;
             }
     }
@@ -36,7 +37,7 @@ const sketch = p => {
 
 const sineWave = p => {
     p.setup = function() {
-        p.createCanvas(400,400);
+        p.createCanvas(HEIGHT,WIDTH);
         p.background(0);
     }
 
@@ -49,26 +50,38 @@ const sineWave = p => {
 
 }
 
-var drawingCanvas = new p5(sketch);
-var sin = new p5(sineWave);
+let drawingCanvas = new p5(sketch);
+let sin = new p5(sineWave);
 
+/**
+ * @param {int} x
+ * @param {int} y
+ * @returns Array containing calculated values of wave in normal coordinate space rounded to nearest integer
+ */
 function calcWave(x, y) {
-    let inc = 6.28318530717958647693 / 400;
-    yvalues = new Array(400);
-    var dx = 0.0;
-    for(let i = 0; i < 400; i++) {
-        yvalues[i] = x * Math.cos(dx) - y * Math.sin(dx) + 200;
+    let inc = 6.28318530717958647693 / WIDTH;
+    yvalues = new Array(WIDTH);
+    let dx = 0.0;
+    for(let i = 0; i < WIDTH; i++) {
+        yvalues[i] = Math.round(x * Math.cos(dx) - y * Math.sin(dx));
         dx += inc;
     }
     return yvalues;
 }
 
+/**
+ * 
+ * @param {p5} p 
+ * @param {x} x 
+ * @param {y} y
+ * @description Takes x and y in cartesian coordinates and draws the given sin wave of the hough transform
+ */
 function drawWave(p, x, y) {
     p.noStroke();
     p.fill(255);
-    let wave = calcWave(x/4,y/4);
-    for(let i = 0; i < 400; i++) {
-        p.ellipse(i,wave[i],1,1);
+    let wave = calcWave(x,y);
+    for(let i = 0; i < WIDTH; i++) {
+        p.ellipse(i,wave[i] + HEIGHT/2, 1, 1);
     }
 }
 
@@ -78,26 +91,3 @@ function clearScreen() {
     sin.clear();
     sin.background(0);
 }
-
-function createRandomLine() {
-    let x = getRandomInt(0,400);
-    let y = getRandomInt(0,400);
-    p.ellipse(x, y, 5, 5);
-            if(!point_set) {
-                point_x = x;
-                point_y = y;
-                point_set = true;
-            }
-}
-
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
-/*
-function computeHoughLine(x_coord, y_coord) {
-    left = y_coord;
-    right = -400.0 * x_coord + y_coord;
-}*/
