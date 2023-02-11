@@ -3,29 +3,31 @@ let point_y = 0;
 let point_set = false;
 const HEIGHT = 500;
 const WIDTH = 500;
+let grid = new Array(HEIGHT);
+
+for(let i = 0; i < HEIGHT; i++) {
+    grid[i] = new Array(WIDTH);
+    grid[i].fill(0);
+}
 
 const sketch = p => {
 
     p.setup = function() {
         p.createCanvas(HEIGHT,WIDTH);
         p.background(200);
-        p.noStroke();
         p.fill(0);
 
         // Reset Button
         button = p.createButton('reset');
-        button.position(100,400);
+        button.position(WIDTH/2,HEIGHT);
         button.mousePressed(clearScreen);
-
-        // Random line Button
-        button2 = p.createButton('create random line');
-        button2.position(180, 400);
 
     }
 
     p.mousePressed = function() {
         if(p.mouseX > HEIGHT || p.mouseY > WIDTH) return;
 
+        p.noStroke();
         p.ellipse(p.mouseX, p.mouseY, 5, 5);
             if(!point_set) {
                 point_x = p.mouseX - WIDTH/2;
@@ -45,6 +47,7 @@ const sineWave = p => {
         if(point_set) {
             drawWave(this, point_x, point_y);
             point_set = false;
+            checkForLines();
         }
     }
 
@@ -53,13 +56,28 @@ const sineWave = p => {
 let drawingCanvas = new p5(sketch);
 let sin = new p5(sineWave);
 
-/**
- * @param {int} x
- * @param {int} y
- * @returns Array containing calculated values of wave in normal coordinate space rounded to nearest integer
- */
+// Draw line given angle and radius - could be done easier if I was better at Linalg lol
+function drawLine(p, r, theta) {
+    p.stroke(255,0,0);
+    if(r == 0) {
+        let dx = Math.cos(-theta + Math.PI/2);
+        let dy = Math.sin(-theta + Math.PI/2);
+        let norm = Math.sqrt(dx*dx + dy*dy);
+        let orthLine = [dx / norm, dy / norm];
+        p.line(-orthLine[0] * WIDTH + WIDTH/2, -orthLine[1] * HEIGHT + HEIGHT/2, orthLine[0] * WIDTH + WIDTH/2, orthLine[1] * HEIGHT + HEIGHT/2);
+        return;
+    }
+
+    let dx = r * Math.cos(-theta);
+    let dy = r * Math.sin(-theta);
+    let norm = Math.sqrt(dx*dx + dy*dy);
+    let orthLine = [-dy / norm, dx / norm];
+    p.line((dx - orthLine[0] * WIDTH) + WIDTH/2, (dy - orthLine[1] * HEIGHT) + HEIGHT/2, (dx + orthLine[0] * WIDTH) + WIDTH/2, (dy + orthLine[1] * HEIGHT) + HEIGHT/2);
+}
+
+// Calculate wave values (discrete)
 function calcWave(x, y) {
-    let inc = 6.28318530717958647693 / WIDTH;
+    let inc = 2 * Math.PI / WIDTH;
     yvalues = new Array(WIDTH);
     let dx = 0.0;
     for(let i = 0; i < WIDTH; i++) {
@@ -69,21 +87,30 @@ function calcWave(x, y) {
     return yvalues;
 }
 
-/**
- * 
- * @param {p5} p 
- * @param {x} x 
- * @param {y} y
- * @description Takes x and y in cartesian coordinates and draws the given sin wave of the hough transform
- */
+// Draw wave and add to grid
 function drawWave(p, x, y) {
     p.noStroke();
     p.fill(255);
     let wave = calcWave(x,y);
     for(let i = 0; i < WIDTH; i++) {
+        p.noStroke();
         p.ellipse(i,wave[i] + HEIGHT/2, 1, 1);
+        grid[i][wave[i] + HEIGHT/2] += 1;
     }
 }
+
+function checkForLines() {
+    for(let i = 0; i < HEIGHT; i++) {
+        for(let j = 0; j < WIDTH; j++) {
+            if (grid[i][j] > 2) {
+                drawLine(drawingCanvas, i - HEIGHT/2, 2*Math.PI / WIDTH * j);
+                grid[i][j] = 0;
+                return;
+            }
+        }
+    }
+}
+
 
 function clearScreen() {
     drawingCanvas.clear();
