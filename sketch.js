@@ -3,6 +3,7 @@ let point_y = 0;
 let point_set = false;
 const HEIGHT = 500;
 const WIDTH = 500;
+const DIAG = Math.round(Math.sqrt(HEIGHT*HEIGHT + WIDTH * WIDTH));
 let grid = new Array(HEIGHT);
 
 for(let i = 0; i < HEIGHT; i++) {
@@ -39,7 +40,7 @@ const sketch = p => {
 
 const sineWave = p => {
     p.setup = function() {
-        p.createCanvas(HEIGHT,WIDTH);
+        p.createCanvas(WIDTH, DIAG);
         p.background(0);
     }
 
@@ -77,7 +78,7 @@ function drawLine(p, r, theta) {
 
 // Calculate wave values (discrete)
 function calcWave(x, y) {
-    let inc = 2 * Math.PI / WIDTH;
+    let inc = Math.PI / WIDTH;
     yvalues = new Array(WIDTH);
     let dx = 0.0;
     for(let i = 0; i < WIDTH; i++) {
@@ -94,8 +95,8 @@ function drawWave(p, x, y) {
     let wave = calcWave(x,y);
     for(let i = 0; i < WIDTH; i++) {
         p.noStroke();
-        p.ellipse(i,wave[i] + HEIGHT/2, 1, 1);
-        grid[i][wave[i] + HEIGHT/2] += 1;
+        p.ellipse(i,wave[i] + DIAG/2, 1, 1);
+        grid[i][wave[i]+DIAG] += 1;
     }
 }
 
