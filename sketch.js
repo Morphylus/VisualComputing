@@ -5,10 +5,13 @@ const WIDTH = 500;
 const HEIGHT = 500;
 const DIAG = Math.round(Math.sqrt(WIDTH*WIDTH + HEIGHT * HEIGHT));
 let grid = new Array(DIAG);
+let used = new Array(DIAG);
 
 for(let i = 0; i < DIAG; i++) {
     grid[i] = new Array(HEIGHT);
     grid[i].fill(0);
+    used[i] = new Array(HEIGHT);
+    used[i].fill(false);
 }
 
 const sketch = p => {
@@ -20,8 +23,8 @@ const sketch = p => {
 
         // Reset Button
         button = p.createButton('reset');
-        button.position(HEIGHT/2,WIDTH);
-        button.mousePressed(clearScreen);
+        button.position(HEIGHT,DIAG);
+        button.mousePressed(reset);
 
     }
 
@@ -34,7 +37,6 @@ const sketch = p => {
                 point_x = p.mouseX - HEIGHT/2;
                 point_y = p.mouseY - WIDTH/2;
                 point_set = true;
-                checkForLines();
             }
     }
 }
@@ -48,6 +50,7 @@ const sineWave = p => {
     p.draw = function() {
         if(point_set) {
             drawWave(this, point_x, point_y);
+            checkForLines();
             point_set = false;
         }
     }
@@ -97,28 +100,34 @@ function drawWave(p, x, y) {
     for(let i = 0; i < HEIGHT; i++) {
         p.noStroke();
         p.ellipse(i,wave[i] + DIAG/2, 1, 1);
-        grid[wave[i] + HEIGHT/2][i] += 1;
+        grid[wave[i] + Math.round(DIAG/2)][i] += 1;
     }
 }
 
 function checkForLines() {
-    console.log("Here");
     for(let i = 0; i < DIAG; i++) {
         for(let j = 0; j < HEIGHT; j++) {
-            if (grid[i][j] > 2) {
-                console.log("Drawn!");
-                drawLine(drawingCanvas, i - HEIGHT/2, Math.PI/HEIGHT * j);
-                grid[i][j] = 0;
+            if (grid[i][j] > 2 && !used[i][j]) {
+                drawLine(drawingCanvas, i - Math.round(DIAG/2), Math.PI/HEIGHT * j);
+                used[i][j] = true;
                 return;
             }
         }
     }
 }
 
-
-function clearScreen() {
+function reset() {
     drawingCanvas.clear();
     drawingCanvas.background(200);
     sin.clear();
     sin.background(0);
+    clearGrid();
+}
+
+function clearGrid() {
+    for(let i = 0; i < grid.length; i++) {
+        for(let j = 0; j < grid[i].length; j++) {
+            grid[i][j] = 0;
+        }
+    }
 }
